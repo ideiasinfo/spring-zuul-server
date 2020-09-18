@@ -1,0 +1,131 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  	<modelVersion>4.0.0</modelVersion>
+  	
+  	<parent>
+		<groupId>br.com</groupId>
+		<artifactId>spring-zuul-server-pom</artifactId>
+		<version>2.0-SNAPSHOT</version>
+    </parent>
+    
+    <name>ZuulServer</name>
+  	<packaging>jar</packaging>
+  	<artifactId>spring-zuul-server</artifactId>
+
+  	<dependencies>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-eureka</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-zuul</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.retry</groupId>
+			<artifactId>spring-retry</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>javax.activation-api</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+  	</dependencies>
+  	
+  	<build>
+	  	<plugins>
+		  	<plugin>
+			    <groupId>org.springframework.boot</groupId>
+			    <artifactId>spring-boot-maven-plugin</artifactId>
+			    <configuration>
+			        <executable>true</executable>
+			    </configuration>
+			    <executions>
+	                <execution>
+	                    <goals>
+	                        <goal>repackage</goal>
+	                    </goals>
+	                </execution>
+	            </executions>
+			</plugin>
+
+			<plugin>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<configuration>
+					<showLogs>${docker.logs.show}</showLogs>
+					<verbose>true</verbose>
+					<images>
+						<image>
+							<name>${docker.registry.url}/${project.artifactId}</name>
+							<alias>${project.artifactId}</alias>
+							<build>
+								<from>openjdk:11.0.4-jre-slim</from>
+								<entryPoint>
+									<exec>
+										<arg>java</arg>
+										<arg>-jar</arg>
+										<arg>/maven/${project.artifactId}-${project.version}.${project.packaging}</arg>
+										<arg>--spring.profiles.active=${PROFILE}</arg>
+										<arg>--spring.cloud.config.uri=${CONFIG_URL}</arg>
+									</exec>
+								</entryPoint>
+								<assembly>
+									<descriptorRef>artifact</descriptorRef>
+								</assembly>
+							</build>
+							<run>
+								<namingStrategy>alias</namingStrategy>
+								<network>
+									<mode>custom</mode>
+									<name>microservices-bridge</name>
+								</network>
+								<env>
+									<PROFILE>docker</PROFILE>
+									<CONFIG_URL>http://spring-config-server:8888/config-server</CONFIG_URL>
+								</env>
+								<ports>
+									<port>8760:8760</port>
+								</ports>
+							</run>
+						</image>
+					</images>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+</project>

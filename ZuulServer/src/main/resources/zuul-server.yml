@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: ZuulServer
+
+#-Dspring.profiles.active=dev
+#-Dspring.profiles.active=docker
+
